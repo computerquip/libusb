@@ -81,16 +81,16 @@ void usbi_hotplug_match(struct libusb_context *ctx, struct libusb_device *dev,
 
 	list_for_each_entry_safe(it, next, &ctx->hotplug_drivers, list, struct hotplug_driver_list) {
 		int error;
-		usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
 		
+		usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
 		error = usbi_hotplug_match_driver(ctx, dev, event, it);
+		usbi_mutex_lock(&ctx->hotplug_drivers_lock);
 		
 		if (error) {
 			list_del((struct list_head*)it);
 			free(it);
 		}
 		
-		usbi_mutex_lock(&ctx->hotplug_drivers_lock);
 	}
 
 	usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
@@ -157,6 +157,7 @@ void API_EXPORTED libusb_hotplug_deregister (
 	libusb_hotplug_driver *driver)
 {
 	struct hotplug_driver_list *it;
+	struct libusb_device *dev;
 	libusb_hotplug_message message;
 	ssize_t ret;
 
@@ -168,9 +169,14 @@ void API_EXPORTED libusb_hotplug_deregister (
 	USBI_GET_CONTEXT(ctx);
 
 	usbi_mutex_lock(&ctx->hotplug_drivers_lock);
-	list_for_each_entry(it, &ctx->hotplug_drivers, list,
-			    struct hotplug_driver_list) {
+	list_for_each_entry(it, &ctx->hotplug_drivers, list, struct hotplug_driver_list) {
 		if (it->driver == driver) {
+			list_for_each_entry(dev, &ctx->usb_devs, list, struct libusb_device) {
+				usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
+				usbi_hotplug_match_driver(ctx, dev, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, it);
+				usbi_mutex_lock(&ctx->hotplug_drivers_lock);
+			}
+			
 			list_del((struct list_head*)it);
 			free(it);
 		}
@@ -179,7 +185,6 @@ void API_EXPORTED libusb_hotplug_deregister (
 	usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
 
 	/* wakeup handle_events to do the actual free */
-	/* TODO: Does this affect us with the new API? */
 	memset(&message, 0, sizeof(message));
 	ret = usbi_write(ctx->hotplug_pipe[1], &message, sizeof(message));
 	if (sizeof(message) != ret) {
@@ -189,14 +194,30 @@ void API_EXPORTED libusb_hotplug_deregister (
 
 void usbi_hotplug_deregister_all(struct libusb_context *ctx) {
 	struct hotplug_driver_list *it, *next;
+	struct libusb_device *dev;
+	libusb_hotplug_message message;
+	ssize_t ret;
 
 	usbi_mutex_lock(&ctx->hotplug_drivers_lock);
+	
 	list_for_each_entry_safe(it, next, &ctx->hotplug_drivers, list,
-				 struct hotplug_driver_list) {
-		/* We do *not* free the driver data itself, that's for the user to do! */
+				struct hotplug_driver_list) 
+	{
+		list_for_each_entry(dev, &ctx->usb_devs, list, struct libusb_device) {
+			usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
+			usbi_hotplug_match_driver(ctx, dev, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, it);
+			usbi_mutex_lock(&ctx->hotplug_drivers_lock);
+		}
+		
 		list_del((struct list_head*)it);
 		free(it);
 	}
 
 	usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
+	
+	memset(&message, 0, sizeof(message));
+	ret = usbi_write(ctx->hotplug_pipe[1], &message, sizeof(message));
+	if (sizeof(message) != ret) {
+		usbi_err(ctx, "error writing hotplug message");
+	}
 }
