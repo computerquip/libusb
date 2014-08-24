@@ -26,48 +26,6 @@
 #include "libusbi.h"
 #endif
 
-/** \ingroup hotplug
- * The hotplug callback structure. The user populates this structure with
- * libusb_hotplug_prepare_callback() and then calls libusb_hotplug_register_callback()
- * to receive notification of hotplug events.
- */
-struct libusb_hotplug_callback {
-	/** Context this callback is associated with */
-	struct libusb_context *ctx;
-
-	/** Vendor ID to match or LIBUSB_HOTPLUG_MATCH_ANY */
-	int vendor_id;
-
-	/** Product ID to match or LIBUSB_HOTPLUG_MATCH_ANY */
-	int product_id;
-
-	/** Device class to match or LIBUSB_HOTPLUG_MATCH_ANY */
-	int dev_class;
-
-	/** Hotplug callback flags */
-	libusb_hotplug_flag flags;
-
-	/** Event(s) that will trigger this callback */
-	libusb_hotplug_event events;
-
-	/** Callback function to invoke for matching event/device */
-	libusb_hotplug_callback_fn cb;
-
-	/** Handle for this callback (used to match on deregister) */
-	libusb_hotplug_callback_handle handle;
-
-	/** User data that will be passed to the callback function */
-	void *user_data;
-
-	/** Callback is marked for deletion */
-	int needs_free;
-
-	/** List this callback is registered in (ctx->hotplug_cbs) */
-	struct list_head list;
-};
-
-typedef struct libusb_hotplug_callback libusb_hotplug_callback;
-
 struct libusb_hotplug_message {
 	libusb_hotplug_event event;
 	struct libusb_device *device;
