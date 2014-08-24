@@ -64,9 +64,9 @@ static int usbi_hotplug_match_driver(struct libusb_context *ctx,
 
 	switch(event){
 	case LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED:
-		return driver->connect(ctx, dev, driver->user_data);
+		return driver->connect(ctx, dev);
 	case LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT:
-		driver->disconnect(ctx, dev, driver->user_data);
+		driver->disconnect(ctx, dev);
 	default:
 		return 0;
 	}
@@ -100,8 +100,7 @@ void usbi_hotplug_match(struct libusb_context *ctx, struct libusb_device *dev,
 
 int API_EXPORTED libusb_hotplug_register(
 	libusb_context *ctx,
-	libusb_hotplug_driver *driver,
-	void *user_data)
+	libusb_hotplug_driver *driver)
 {
 	/* check for hotplug support */
 	if (!libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) {

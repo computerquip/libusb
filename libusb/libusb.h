@@ -1909,15 +1909,12 @@ typedef enum {
  *
  * \param ctx            context of this notification
  * \param device         libusb_device this event occurred on
- * \param user_data      user data provided when this callback was registered
  */
 typedef int (LIBUSB_CALL *libusb_hotplug_connect_fn)(libusb_context *ctx,
-						libusb_device *device,
-						void *user_data);
+						libusb_device *device);
 
 typedef void (LIBUSB_CALL *libusb_hotplug_disconnect_fn)(libusb_context *ctx,
-						     libusb_device *device,
-						     void *user_data);
+						     libusb_device *device);
 
 /** \ingroup hotplug 
  * A struct of data describing what to do when a device is found 
@@ -1926,7 +1923,6 @@ typedef void (LIBUSB_CALL *libusb_hotplug_disconnect_fn)(libusb_context *ctx,
  * \ref libusb_hotplug_register().
  */
 struct libusb_hotplug_driver {
-	void *user_data;
 	libusb_hotplug_connect_fn connect;
 	libusb_hotplug_disconnect_fn disconnect;
 	int flags;
@@ -1961,12 +1957,10 @@ typedef struct libusb_hotplug_driver libusb_hotplug_driver;
  *
  * \param[in] ctx context to register this callback with
  * \param[in] driver hotplug driver struct that contains callbacks and filter information. 
- * \param[in] user_data user data to pass to the callback function
  * \returns LIBUSB_SUCCESS on success LIBUSB_ERROR code on failure
  */
 int LIBUSB_CALL libusb_hotplug_register(libusb_context *ctx,
-						libusb_hotplug_driver *driver,
-						void *user_data);
+						libusb_hotplug_driver *driver);
 
 /** \ingroup hotplug
  * Deregisters a hotplug callback.
