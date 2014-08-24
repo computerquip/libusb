@@ -156,7 +156,7 @@ void API_EXPORTED libusb_hotplug_deregister (
 	struct libusb_context *ctx,
 	libusb_hotplug_driver *driver)
 {
-	struct hotplug_driver_list *it;
+	struct hotplug_driver_list *it, *next;
 	struct libusb_device *dev;
 	libusb_hotplug_message message;
 	ssize_t ret;
@@ -169,7 +169,7 @@ void API_EXPORTED libusb_hotplug_deregister (
 	USBI_GET_CONTEXT(ctx);
 
 	usbi_mutex_lock(&ctx->hotplug_drivers_lock);
-	list_for_each_entry(it, &ctx->hotplug_drivers, list, struct hotplug_driver_list) {
+	list_for_each_entry_safe(it, next, &ctx->hotplug_drivers, list, struct hotplug_driver_list) {
 		if (it->driver == driver) {
 			list_for_each_entry(dev, &ctx->usb_devs, list, struct libusb_device) {
 				usbi_hotplug_match_driver(ctx, dev, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, it);
