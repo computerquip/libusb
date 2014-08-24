@@ -303,6 +303,7 @@ struct libusb_device {
 	int refcnt;
 
 	struct libusb_context *ctx;
+	void *user_data;
 
 	uint8_t bus_number;
 	uint8_t port_number;

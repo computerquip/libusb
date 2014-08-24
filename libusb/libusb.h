@@ -1311,6 +1311,9 @@ const char * LIBUSB_CALL libusb_error_name(int errcode);
 int LIBUSB_CALL libusb_setlocale(const char *locale);
 const char * LIBUSB_CALL libusb_strerror(enum libusb_error errcode);
 
+void LIBUSB_CALL libusb_set_device_user_data(libusb_device *device, 
+	void *user_data);
+void * LIBUSB_CALL libusb_get_device_user_data(libusb_device *device);
 ssize_t LIBUSB_CALL libusb_get_device_list(libusb_context *ctx,
 	libusb_device ***list);
 void LIBUSB_CALL libusb_free_device_list(libusb_device **list,

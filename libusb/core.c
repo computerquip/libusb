@@ -629,6 +629,27 @@ struct libusb_device *usbi_get_device_by_session_id(struct libusb_context *ctx,
 }
 
 /** @ingroup dev
+ * Sets contextual data associate with this specific device structure. 
+ * \param device Device structure to associate data with.
+ * \param user_data Data to associate with the device structure.
+ */
+void API_EXPORTED libusb_set_device_user_data(libusb_device *device,
+	void *user_data)
+{
+	device->user_data = user_data;
+}
+
+/** @ingroup dev
+ * Fetches contextual data associated with this specific device structure.
+ * \param device Device structure with associated data.
+ * \returns the associated data.
+ */
+DEFAULT_VISIBILITY void * LIBUSB_CALL libusb_get_device_user_data(libusb_device *device)
+{
+	return device->user_data;
+}
+
+/** @ingroup dev
  * Returns a list of USB devices currently attached to the system. This is
  * your entry point into finding a USB device to operate.
  *
