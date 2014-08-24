@@ -1912,10 +1912,10 @@ int API_EXPORTED libusb_init(libusb_context **context)
 
 	usbi_mutex_init(&ctx->usb_devs_lock, NULL);
 	usbi_mutex_init(&ctx->open_devs_lock, NULL);
-	usbi_mutex_init(&ctx->hotplug_cbs_lock, NULL);
+	usbi_mutex_init(&ctx->hotplug_drivers_lock, NULL);
 	list_init(&ctx->usb_devs);
 	list_init(&ctx->open_devs);
-	list_init(&ctx->hotplug_cbs);
+	list_init(&ctx->hotplug_drivers);
 
 	usbi_mutex_static_lock(&active_contexts_lock);
 	if (first_init) {
@@ -1962,7 +1962,7 @@ err_free_ctx:
 
 	usbi_mutex_destroy(&ctx->open_devs_lock);
 	usbi_mutex_destroy(&ctx->usb_devs_lock);
-	usbi_mutex_destroy(&ctx->hotplug_cbs_lock);
+	usbi_mutex_destroy(&ctx->hotplug_drivers_lock);
 
 	free(ctx);
 err_unlock:
@@ -2037,7 +2037,7 @@ void API_EXPORTED libusb_exit(struct libusb_context *ctx)
 
 	usbi_mutex_destroy(&ctx->open_devs_lock);
 	usbi_mutex_destroy(&ctx->usb_devs_lock);
-	usbi_mutex_destroy(&ctx->hotplug_cbs_lock);
+	usbi_mutex_destroy(&ctx->hotplug_drivers_lock);
 	free(ctx);
 }
 

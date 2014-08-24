@@ -900,7 +900,6 @@ struct libusb_control_setup {
 struct libusb_context;
 struct libusb_device;
 struct libusb_device_handle;
-struct libusb_hotplug_callback;
 
 /** \ingroup lib
  * Structure providing the version of the libusb runtime
@@ -1927,12 +1926,13 @@ typedef int (LIBUSB_CALL *libusb_hotplug_disconnect_fn)(libusb_context *ctx,
  * \ref libusb_hotplug_register().
  */
 struct libusb_hotplug_driver {
-    libusb_hotplug_connect_fn on_connect;
-    libusb_hotplug_disconnect_fn on_disconnect;
-    int flags;
-    int vid;
-    int pid;
-    int dev_class;
+	void *user_data;
+	libusb_hotplug_connect_fn connect;
+	libusb_hotplug_disconnect_fn disconnect;
+	int flags;
+	int vid;
+	int pid;
+	int dev_class;
 };
 
 typedef struct libusb_hotplug_driver libusb_hotplug_driver;
@@ -1979,7 +1979,7 @@ int LIBUSB_CALL libusb_hotplug_register(libusb_context *ctx,
  * \param[in] ctx context this callback is registered with
  * \param[in] driver pointer to the driver struct you initially registered.
  */
-void LIBUSB_CALL libusb_hotplug_unregister(libusb_context *ctx,
+void LIBUSB_CALL libusb_hotplug_deregister(libusb_context *ctx,
 					libusb_hotplug_driver *driver);
 
 #ifdef __cplusplus
