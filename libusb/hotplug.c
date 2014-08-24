@@ -158,8 +158,6 @@ void API_EXPORTED libusb_hotplug_deregister (
 {
 	struct hotplug_driver_list *it, *next;
 	struct libusb_device *dev;
-	libusb_hotplug_message message;
-	ssize_t ret;
 
 	/* check for hotplug support */
 	if (!libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) {
@@ -181,20 +179,11 @@ void API_EXPORTED libusb_hotplug_deregister (
 		
 	}
 	usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
-
-	/* wakeup handle_events to do the actual free */
-	memset(&message, 0, sizeof(message));
-	ret = usbi_write(ctx->hotplug_pipe[1], &message, sizeof(message));
-	if (sizeof(message) != ret) {
-		usbi_err(ctx, "error writing hotplug message");
-	}
 }
 
 void usbi_hotplug_deregister_all(struct libusb_context *ctx) {
 	struct hotplug_driver_list *it, *next;
 	struct libusb_device *dev;
-	libusb_hotplug_message message;
-	ssize_t ret;
 
 	usbi_mutex_lock(&ctx->hotplug_drivers_lock);
 	
@@ -212,10 +201,4 @@ void usbi_hotplug_deregister_all(struct libusb_context *ctx) {
 	}
 
 	usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
-	
-	memset(&message, 0, sizeof(message));
-	ret = usbi_write(ctx->hotplug_pipe[1], &message, sizeof(message));
-	if (sizeof(message) != ret) {
-		usbi_err(ctx, "error writing hotplug message");
-	}
 }
