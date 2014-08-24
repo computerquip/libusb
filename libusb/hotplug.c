@@ -172,9 +172,7 @@ void API_EXPORTED libusb_hotplug_deregister (
 	list_for_each_entry(it, &ctx->hotplug_drivers, list, struct hotplug_driver_list) {
 		if (it->driver == driver) {
 			list_for_each_entry(dev, &ctx->usb_devs, list, struct libusb_device) {
-				usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
 				usbi_hotplug_match_driver(ctx, dev, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, it);
-				usbi_mutex_lock(&ctx->hotplug_drivers_lock);
 			}
 			
 			list_del((struct list_head*)it);
