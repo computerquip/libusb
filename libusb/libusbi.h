@@ -245,8 +245,8 @@ struct libusb_context {
 	usbi_mutex_t open_devs_lock;
 
 	/* A list of registered hotplug callbacks */
-	struct list_head hotplug_cbs;
-	usbi_mutex_t hotplug_cbs_lock;
+	struct list_head hotplug_drivers;
+	usbi_mutex_t hotplug_drivers_lock;
 	int hotplug_pipe[2];
 
 	/* this is a list of in-flight transfer handles, sorted by timeout
