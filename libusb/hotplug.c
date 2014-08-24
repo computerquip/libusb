@@ -41,7 +41,7 @@ struct hotplug_driver_list {
 /* This tests the drivers filter against the device. 
  * If it matches, we fire off the callback corresponding to the event. 
  */
-static void usbi_hotplug_match_driver(struct libusb_context *ctx,
+static int usbi_hotplug_match_driver(struct libusb_context *ctx,
 	struct libusb_device *dev, libusb_hotplug_event event,
 	struct hotplug_driver_list *driver_it)
 {
@@ -49,26 +49,26 @@ static void usbi_hotplug_match_driver(struct libusb_context *ctx,
 	
 	if (driver->vid != LIBUSB_HOTPLUG_MATCH_ANY &&
 	    driver->vid != dev->device_descriptor.idVendor) {
-		return;
+		return 0;
 	}
 
 	if (driver->pid != LIBUSB_HOTPLUG_MATCH_ANY &&
 	    driver->pid != dev->device_descriptor.idProduct) {
-		return;
+		return 0;
 	}
 
 	if (driver->dev_class != LIBUSB_HOTPLUG_MATCH_ANY  &&
 	    driver->dev_class != dev->device_descriptor.bDeviceClass) {
-		return;
+		return 0;
 	}
 
 	switch(event){
 	case LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED:
-		driver->connect (ctx, dev, driver->user_data);
-		break;
+		return driver->connect(ctx, dev, driver->user_data);
 	case LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT:
-		driver->disconnect (ctx, dev, driver->user_data);
-		break;
+		driver->disconnect(ctx, dev, driver->user_data);
+	default:
+		return 0;
 	}
 }
 
@@ -80,9 +80,15 @@ void usbi_hotplug_match(struct libusb_context *ctx, struct libusb_device *dev,
 	usbi_mutex_lock(&ctx->hotplug_drivers_lock);
 
 	list_for_each_entry_safe(it, next, &ctx->hotplug_drivers, list, struct hotplug_driver_list) {
+		int error;
 		usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
 		
-		usbi_hotplug_match_driver(ctx, dev, event, it);
+		error = usbi_hotplug_match_driver(ctx, dev, event, it);
+		
+		if (error) {
+			list_del((struct list_head*)it);
+			free(it);
+		}
 		
 		usbi_mutex_lock(&ctx->hotplug_drivers_lock);
 	}
