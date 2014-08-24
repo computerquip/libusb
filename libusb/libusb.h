@@ -1915,7 +1915,7 @@ typedef int (LIBUSB_CALL *libusb_hotplug_connect_fn)(libusb_context *ctx,
 						libusb_device *device,
 						void *user_data);
 
-typedef int (LIBUSB_CALL *libusb_hotplug_disconnect_fn)(libusb_context *ctx,
+typedef void (LIBUSB_CALL *libusb_hotplug_disconnect_fn)(libusb_context *ctx,
 						     libusb_device *device,
 						     void *user_data);
 
