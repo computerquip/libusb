@@ -87,8 +87,7 @@ void usbi_hotplug_match(struct libusb_context *ctx, struct libusb_device *dev,
 		usbi_mutex_lock(&ctx->hotplug_drivers_lock);
 		
 		if (error) {
-			list_del((struct list_head*)it);
-			free(it);
+			/* Do nothing for now. */
 		}
 		
 	}
