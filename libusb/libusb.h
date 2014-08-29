@@ -1963,7 +1963,7 @@ typedef struct libusb_hotplug_driver libusb_hotplug_driver;
  * \returns LIBUSB_SUCCESS on success LIBUSB_ERROR code on failure
  */
 int LIBUSB_CALL libusb_hotplug_register(libusb_context *ctx,
-						libusb_hotplug_driver *driver);
+						const libusb_hotplug_driver *driver);
 
 /** \ingroup hotplug
  * Deregisters a hotplug callback.
@@ -1977,7 +1977,7 @@ int LIBUSB_CALL libusb_hotplug_register(libusb_context *ctx,
  * \param[in] driver pointer to the driver struct you initially registered.
  */
 void LIBUSB_CALL libusb_hotplug_deregister(libusb_context *ctx,
-					libusb_hotplug_driver *driver);
+					const libusb_hotplug_driver *driver);
 
 #ifdef __cplusplus
 }

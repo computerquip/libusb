@@ -35,7 +35,7 @@
 
 struct hotplug_driver_list {
 	struct list_head list;
-	libusb_hotplug_driver *driver;
+	const libusb_hotplug_driver *driver;
 };
 
 /* This tests the drivers filter against the device. 
@@ -45,7 +45,7 @@ static int usbi_hotplug_match_driver(struct libusb_context *ctx,
 	struct libusb_device *dev, libusb_hotplug_event event,
 	struct hotplug_driver_list *driver_it)
 {
-	struct libusb_hotplug_driver *driver = driver_it->driver;
+	const struct libusb_hotplug_driver *driver = driver_it->driver;
 	
 	if (driver->vid != LIBUSB_HOTPLUG_MATCH_ANY &&
 	    driver->vid != dev->device_descriptor.idVendor) {
@@ -99,7 +99,7 @@ void usbi_hotplug_match(struct libusb_context *ctx, struct libusb_device *dev,
 
 int API_EXPORTED libusb_hotplug_register(
 	libusb_context *ctx,
-	libusb_hotplug_driver *driver)
+	const libusb_hotplug_driver *driver)
 {
 	/* check for hotplug support */
 	if (!libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) {
@@ -153,7 +153,7 @@ int API_EXPORTED libusb_hotplug_register(
 
 void API_EXPORTED libusb_hotplug_deregister (
 	struct libusb_context *ctx,
-	libusb_hotplug_driver *driver)
+	const libusb_hotplug_driver *driver)
 {
 	struct hotplug_driver_list *it, *next;
 	struct libusb_device *dev;
