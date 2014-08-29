@@ -1925,7 +1925,7 @@ typedef void (LIBUSB_CALL *libusb_hotplug_disconnect_fn)(libusb_context *ctx,
  * TODO: There should probably be more flexibility when it comes to device filtering.
  * \ref libusb_hotplug_register().
  */
-struct libusb_hotplug_driver {
+struct libusb_hotplug {
 	libusb_hotplug_connect_fn connect;
 	libusb_hotplug_disconnect_fn disconnect;
 	int flags;
@@ -1934,7 +1934,7 @@ struct libusb_hotplug_driver {
 	int dev_class;
 };
 
-typedef struct libusb_hotplug_driver libusb_hotplug_driver;
+typedef struct libusb_hotplug libusb_hotplug;
 
 /** \ingroup hotplug
  * Register a hotplug callback function
@@ -1963,7 +1963,7 @@ typedef struct libusb_hotplug_driver libusb_hotplug_driver;
  * \returns LIBUSB_SUCCESS on success LIBUSB_ERROR code on failure
  */
 int LIBUSB_CALL libusb_hotplug_register(libusb_context *ctx,
-						const libusb_hotplug_driver *driver);
+						const libusb_hotplug *driver);
 
 /** \ingroup hotplug
  * Deregisters a hotplug callback.
@@ -1977,7 +1977,7 @@ int LIBUSB_CALL libusb_hotplug_register(libusb_context *ctx,
  * \param[in] driver pointer to the driver struct you initially registered.
  */
 void LIBUSB_CALL libusb_hotplug_deregister(libusb_context *ctx,
-					const libusb_hotplug_driver *driver);
+					const libusb_hotplug *driver);
 
 #ifdef __cplusplus
 }

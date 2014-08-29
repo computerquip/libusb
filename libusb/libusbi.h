@@ -297,6 +297,8 @@ struct libusb_context {
 #endif
 
 struct libusb_device {
+	struct list_head list;
+	
 	/* lock protects refcnt, everything else is finalized at initialization
 	 * time */
 	usbi_mutex_t lock;
@@ -312,7 +314,6 @@ struct libusb_device {
 	uint8_t num_configurations;
 	enum libusb_speed speed;
 
-	struct list_head list;
 	unsigned long session_data;
 
 	struct libusb_device_descriptor device_descriptor;
