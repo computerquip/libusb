@@ -83,7 +83,7 @@ void usbi_hotplug_match(struct libusb_context *ctx, struct libusb_device *dev,
 		int error = usbi_hotplug_match_driver(ctx, dev, event, it);
 		
 		if (error) {
-			
+			dev->attached = 0;
 		}
 		
 	}
