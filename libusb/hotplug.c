@@ -83,7 +83,7 @@ void usbi_hotplug_match(struct libusb_context *ctx, struct libusb_device *dev,
 		int error = usbi_hotplug_match_driver(ctx, dev, event, it);
 		
 		if (error) {
-			dev->attached = 0;
+			
 		}
 		
 	}
@@ -166,8 +166,7 @@ void API_EXPORTED libusb_hotplug_deregister (
 		if (it->driver != driver) continue;
 		
 		list_for_each_entry(dev, &ctx->usb_devs, list, struct libusb_device) {
-			if (dev->attached) /* We only emulate disconnection if it's not already disconnected */
-				usbi_hotplug_match_driver(ctx, dev, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, it);
+			usbi_hotplug_match_driver(ctx, dev, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, it);
 		}
 			
 		list_del((struct list_head*)it);
@@ -185,8 +184,7 @@ void usbi_hotplug_deregister_all(struct libusb_context *ctx) {
 	
 	list_for_each_entry_safe(it, next, &ctx->hotplug_drivers, list, struct hotplug_driver_list) {
 		list_for_each_entry(dev, &ctx->usb_devs, list, struct libusb_device) {
-			if (dev->attached)
-				usbi_hotplug_match_driver(ctx, dev, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, it);
+			usbi_hotplug_match_driver(ctx, dev, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, it);
 		}
 		
 		list_del((struct list_head*)it);
