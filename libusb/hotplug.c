@@ -72,6 +72,27 @@ static int usbi_hotplug_match_driver(struct libusb_context *ctx,
 	return driver->connect(ctx, dev);
 }
 
+static void usbi_hotplug_connect_device(struct libusb_context *ctx,
+	struct libusb_device *device,
+	struct hotplug_list *it)
+{
+	struct device_list *device_node = malloc(sizeof(struct device_list));
+	device_node->device = device;
+	list_add((struct list_head*)device_node, (struct list_head*)&it->device_list);
+}
+
+static void usbi_hotplug_disconnect_all(struct libusb_context *ctx,
+	struct hotplug_list *it)
+{
+	struct device_list *device_node;
+	
+	list_for_each_entry(device_node, (struct list_head*)&it->device_list, list, struct device_list) {
+		it->driver->disconnect(ctx, device_node->device);
+		list_del((struct list_head*)device_node);
+		free(device_node);
+	}
+}
+
 static void usbi_hotplug_disconnect_device(struct libusb_context *ctx,
 	struct libusb_device *device,
 	struct hotplug_list *it)
@@ -82,6 +103,8 @@ static void usbi_hotplug_disconnect_device(struct libusb_context *ctx,
 		if (device_node->device != device) continue;
 				
 		it->driver->disconnect(ctx, device);
+		list_del((struct list_head*)device_node);
+		free(device_node);
 	}
 }
 
@@ -97,7 +120,7 @@ void usbi_hotplug_match(struct libusb_context *ctx, struct libusb_device *dev,
 			int error = usbi_hotplug_match_driver(ctx, dev, it);
 			
 			if (!error) {
-				list_add(&dev->list, (struct list_head*)&it->device_list);
+				usbi_hotplug_connect_device(ctx, dev, it);
 			}
 		}
 		else if(event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT) {
@@ -115,12 +138,14 @@ int API_EXPORTED libusb_hotplug_register(
 	libusb_context *ctx,
 	const libusb_hotplug *driver)
 {
+	struct hotplug_list *node;
+	struct libusb_device *dev;
+	
 	/* check for hotplug support */
 	if (!libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) {
 		return LIBUSB_ERROR_NOT_SUPPORTED;
 	}
 	
-
 	/* check for sane values */
 	if (!driver ||
 	    (LIBUSB_HOTPLUG_MATCH_ANY != driver->vid && (~0xffff & driver->vid)) ||
@@ -130,42 +155,25 @@ int API_EXPORTED libusb_hotplug_register(
 	}
 	
 	/* allocate new node for driver list */
-	struct hotplug_list *node = malloc(sizeof(struct hotplug_list));
+	node = malloc(sizeof(struct hotplug_list));
 	
 	if (!node) return LIBUSB_ERROR_NO_MEM;
 
 	list_init((struct list_head*)&node->device_list);
-	node->device_list.device = NULL;
-				 
+	
+	node->device_list.device = NULL;		 
 	node->driver = driver;
 
 	USBI_GET_CONTEXT(ctx);
 
 	usbi_mutex_lock(&ctx->hotplug_drivers_lock);
-
 	list_add((struct list_head*)node, &ctx->hotplug_drivers);
-
 	usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
 
 	if (driver->flags & LIBUSB_HOTPLUG_ENUMERATE) {
-		int i, len;
-		struct libusb_device **devs;
-
-		len = (int) libusb_get_device_list(ctx, &devs);
-		if (len < 0) {
-			libusb_hotplug_deregister(ctx, driver);
-			return len;
+		list_for_each_entry(dev, &ctx->usb_devs, list, struct libusb_device) {
+			usbi_hotplug_match(ctx, dev, LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED);
 		}
-
-		for (i = 0; i < len; i++) {
-			int error = usbi_hotplug_match_driver(ctx, devs[i], node);
-			
-			if (!error) {
-				list_add(&devs[i]->list, (struct list_head*)&node->device_list);
-			}
-		}
-
-		libusb_free_device_list(devs, 1);
 	}
 
 	return LIBUSB_SUCCESS;
@@ -176,7 +184,6 @@ void API_EXPORTED libusb_hotplug_deregister (
 	const libusb_hotplug *driver)
 {
 	struct hotplug_list *it, *next;
-	struct device_list *device_node;
 
 	/* check for hotplug support */
 	if (!libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) {
@@ -189,9 +196,7 @@ void API_EXPORTED libusb_hotplug_deregister (
 	list_for_each_entry_safe(it, next, &ctx->hotplug_drivers, list, struct hotplug_list) {
 		if (it->driver != driver) continue;
 		
-		list_for_each_entry(device_node, (struct list_head*)&it->device_list, list, struct device_list) {
-			driver->disconnect(ctx, device_node->device);
-		}
+		usbi_hotplug_disconnect_all(ctx, it);
 			
 		list_del((struct list_head*)it);
 		free(it);
@@ -202,17 +207,11 @@ void API_EXPORTED libusb_hotplug_deregister (
 
 void usbi_hotplug_deregister_all(struct libusb_context *ctx) {
 	struct hotplug_list *it, *next;
-	struct device_list *device_node;
 
 	usbi_mutex_lock(&ctx->hotplug_drivers_lock);
 	
 	list_for_each_entry_safe(it, next, &ctx->hotplug_drivers, list, struct hotplug_list) {
-		list_for_each_entry(device_node, (struct list_head*)&it->device_list, list, struct device_list) {
-			it->driver->disconnect(ctx, device_node->device);
-		}
-		
-		list_del((struct list_head*)it);
-		free(it);
+		usbi_hotplug_disconnect_all(ctx, it);
 	}
 
 	usbi_mutex_unlock(&ctx->hotplug_drivers_lock);
