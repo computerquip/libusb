@@ -84,9 +84,9 @@ static void usbi_hotplug_connect_device(struct libusb_context *ctx,
 static void usbi_hotplug_disconnect_all(struct libusb_context *ctx,
 	struct hotplug_list *it)
 {
-	struct device_list *device_node;
+	struct device_list *device_node, *next;
 	
-	list_for_each_entry(device_node, (struct list_head*)&it->device_list, list, struct device_list) {
+	list_for_each_entry_safe(device_node, next, (struct list_head*)&it->device_list, list, struct device_list) {
 		it->driver->disconnect(ctx, device_node->device);
 		list_del((struct list_head*)device_node);
 		free(device_node);
@@ -97,9 +97,9 @@ static void usbi_hotplug_disconnect_device(struct libusb_context *ctx,
 	struct libusb_device *device,
 	struct hotplug_list *it)
 {
-	struct device_list *device_node;
+	struct device_list *device_node, *next;
 	
-	list_for_each_entry(device_node, (struct list_head*)&it->device_list, list, struct device_list) {
+	list_for_each_entry_safe(device_node, next, (struct list_head*)&it->device_list, list, struct device_list) {
 		if (device_node->device != device) continue;
 				
 		it->driver->disconnect(ctx, device);
