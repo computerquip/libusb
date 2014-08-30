@@ -296,9 +296,7 @@ struct libusb_context {
 #define usbi_using_timerfd(ctx) (0)
 #endif
 
-struct libusb_device {
-	struct list_head list;
-	
+struct libusb_device {	
 	/* lock protects refcnt, everything else is finalized at initialization
 	 * time */
 	usbi_mutex_t lock;
@@ -314,6 +312,8 @@ struct libusb_device {
 	uint8_t num_configurations;
 	enum libusb_speed speed;
 
+	struct list_head list;
+	struct list_head driver_dev_list; /* List associated with the driver */
 	unsigned long session_data;
 
 	struct libusb_device_descriptor device_descriptor;
